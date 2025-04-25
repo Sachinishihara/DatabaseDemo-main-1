@@ -4,41 +4,78 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WebStore.Entities;
 
 #nullable disable
 
 namespace WebStore.Migrations
 {
-    [DbContext(typeof(learningassignment4Context))]
-    [Migration("20250409173908_InitialBaseline")]
+    [DbContext(typeof(WebStoreContext))]
+    [Migration("20250424070454_InitialBaseline")]
     partial class InitialBaseline
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseCollation("utf8mb4_0900_ai_ci")
-                .HasAnnotation("ProductVersion", "6.0.3")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "discount_type", new[] { "percentage", "flat" });
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("MyECommerce.Console.Entities.DiscountCode", b =>
+                {
+                    b.Property<int>("DiscountCodeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DiscountCodeId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("discount_type");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("MaxUsage")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TimesUsed")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DiscountCodeId");
+
+                    b.ToTable("discount_codes", (string)null);
+                });
 
             modelBuilder.Entity("ProductCategory", b =>
                 {
                     b.Property<int>("CategoryId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("category_id");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("product_id");
 
                     b.HasKey("CategoryId", "ProductId")
-                        .HasName("PRIMARY")
-                        .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                        .HasName("pk_product_categories");
 
-                    b.HasIndex(new[] { "ProductId" }, "fk_pc_product");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("product_categories", (string)null);
                 });
@@ -47,70 +84,107 @@ namespace WebStore.Migrations
                 {
                     b.Property<int>("AddressId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("address_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AddressId"));
 
                     b.Property<string>("AddressType")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("address_type");
 
                     b.Property<string>("City")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("city");
 
                     b.Property<string>("Country")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("country");
 
                     b.Property<int>("CustomerId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("customer_id");
 
                     b.Property<string>("PostalCode")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("postal_code");
 
                     b.Property<string>("State")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("state");
 
                     b.Property<string>("Street")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("street");
 
-                    b.HasKey("AddressId");
+                    b.HasKey("AddressId")
+                        .HasName("addresses_pkey");
 
-                    b.HasIndex(new[] { "CustomerId" }, "fk_addresses_customer");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("addresses", (string)null);
+                });
+
+            modelBuilder.Entity("WebStore.Entities.Carrier", b =>
+                {
+                    b.Property<int>("CarrierId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("carrier_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CarrierId"));
+
+                    b.Property<string>("CarrierName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("carrier_name");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("contact_phone");
+
+                    b.Property<string>("ContactUrl")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("contact_url");
+
+                    b.HasKey("CarrierId")
+                        .HasName("carriers_pkey");
+
+                    b.ToTable("carriers", (string)null);
                 });
 
             modelBuilder.Entity("WebStore.Entities.Category", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("category_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CategoryId"));
 
                     b.Property<string>("CategoryName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("category_name");
 
                     b.Property<int?>("ParentCategoryId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("parent_category_id");
 
-                    b.HasKey("CategoryId");
+                    b.HasKey("CategoryId")
+                        .HasName("categories_pkey");
 
-                    b.HasIndex(new[] { "ParentCategoryId" }, "fk_categories_parent");
+                    b.HasIndex("ParentCategoryId");
 
                     b.ToTable("categories", (string)null);
                 });
@@ -119,45 +193,44 @@ namespace WebStore.Migrations
                 {
                     b.Property<int>("CustomerId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("customer_id");
 
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CustomerId"));
+
                     b.Property<DateTime?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("email");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("first_name");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("last_name");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("phone");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("CustomerId");
+                    b.HasKey("CustomerId")
+                        .HasName("customers_pkey");
 
                     b.ToTable("customers", (string)null);
                 });
@@ -166,39 +239,63 @@ namespace WebStore.Migrations
                 {
                     b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("order_id");
 
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("OrderId"));
+
                     b.Property<int>("BillingAddressId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("billing_address_id");
 
+                    b.Property<int?>("CarrierId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("CustomerId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("customer_id");
 
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_date");
+
+                    b.Property<int?>("DiscountCodeId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("OrderDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("order_date")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("order_date");
 
                     b.Property<string>("OrderStatus")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("order_status");
 
+                    b.Property<DateTime?>("ShippedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("shipped_date");
+
                     b.Property<int>("ShippingAddressId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("shipping_address_id");
 
-                    b.HasKey("OrderId");
+                    b.Property<string>("TrackingNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tracking_number");
 
-                    b.HasIndex(new[] { "BillingAddressId" }, "fk_orders_billing_address");
+                    b.HasKey("OrderId")
+                        .HasName("orders_pkey");
 
-                    b.HasIndex(new[] { "CustomerId" }, "fk_orders_customer");
+                    b.HasIndex("BillingAddressId");
 
-                    b.HasIndex(new[] { "ShippingAddressId" }, "fk_orders_shipping_address");
+                    b.HasIndex("CarrierId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DiscountCodeId");
+
+                    b.HasIndex("ShippingAddressId");
 
                     b.ToTable("orders", (string)null);
                 });
@@ -206,34 +303,31 @@ namespace WebStore.Migrations
             modelBuilder.Entity("WebStore.Entities.OrderItem", b =>
                 {
                     b.Property<int>("OrderId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("order_id");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("product_id");
 
                     b.Property<decimal?>("Discount")
-                        .ValueGeneratedOnAdd()
                         .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("discount")
-                        .HasDefaultValueSql("'0.00'");
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("discount");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("quantity");
 
                     b.Property<decimal?>("UnitPrice")
                         .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)")
+                        .HasColumnType("numeric(10,2)")
                         .HasColumnName("unit_price");
 
                     b.HasKey("OrderId", "ProductId")
-                        .HasName("PRIMARY")
-                        .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                        .HasName("pk_order_items");
 
-                    b.HasIndex(new[] { "ProductId" }, "fk_oi_product");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("order_items", (string)null);
                 });
@@ -242,108 +336,109 @@ namespace WebStore.Migrations
                 {
                     b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("product_id");
 
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProductId"));
+
                     b.Property<DateTime?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("description");
 
                     b.Property<decimal?>("Price")
                         .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)")
+                        .HasColumnType("numeric(10,2)")
                         .HasColumnName("price");
 
                     b.Property<string>("ProductName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("product_name");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("ProductId");
+                    b.HasKey("ProductId")
+                        .HasName("products_pkey");
 
                     b.ToTable("products", (string)null);
                 });
 
-            modelBuilder.Entity("WebStore.Entities.staff", b =>
+            modelBuilder.Entity("WebStore.Entities.Staff", b =>
                 {
                     b.Property<int>("StaffId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("staff_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StaffId"));
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("email");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("first_name");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("last_name");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("phone");
 
                     b.Property<int>("StoreId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("store_id");
 
-                    b.HasKey("StaffId");
+                    b.HasKey("StaffId")
+                        .HasName("staff_pkey");
 
-                    b.HasIndex(new[] { "StoreId" }, "fk_staff_store");
+                    b.HasIndex("StoreId");
 
-                    b.ToTable("staff");
+                    b.ToTable("staff", (string)null);
                 });
 
             modelBuilder.Entity("WebStore.Entities.Stock", b =>
                 {
                     b.Property<int>("StoreId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("store_id");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("product_id");
 
                     b.Property<int>("QuantityInStock")
-                        .HasColumnType("int")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
                         .HasColumnName("quantity_in_stock");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("StoreId", "ProductId")
-                        .HasName("PRIMARY")
-                        .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                        .HasName("pk_stocks");
 
-                    b.HasIndex(new[] { "ProductId" }, "fk_stocks_product");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("stocks", (string)null);
                 });
@@ -352,46 +447,49 @@ namespace WebStore.Migrations
                 {
                     b.Property<int>("StoreId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("store_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StoreId"));
 
                     b.Property<string>("City")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("city");
 
                     b.Property<string>("Country")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("country");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("email");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("phone");
 
                     b.Property<string>("PostalCode")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("postal_code");
 
                     b.Property<string>("StoreName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("store_name");
 
                     b.Property<string>("Street")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("street");
 
-                    b.HasKey("StoreId");
+                    b.HasKey("StoreId")
+                        .HasName("stores_pkey");
 
                     b.ToTable("stores", (string)null);
                 });
@@ -441,24 +539,42 @@ namespace WebStore.Migrations
                     b.HasOne("WebStore.Entities.Address", "BillingAddress")
                         .WithMany("OrderBillingAddresses")
                         .HasForeignKey("BillingAddressId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_orders_billing_address");
+
+                    b.HasOne("WebStore.Entities.Carrier", "Carrier")
+                        .WithMany("Orders")
+                        .HasForeignKey("CarrierId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_orders_carrier");
 
                     b.HasOne("WebStore.Entities.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_orders_customer");
+
+                    b.HasOne("MyECommerce.Console.Entities.DiscountCode", "DiscountCode")
+                        .WithMany("Orders")
+                        .HasForeignKey("DiscountCodeId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("WebStore.Entities.Address", "ShippingAddress")
                         .WithMany("OrderShippingAddresses")
                         .HasForeignKey("ShippingAddressId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_orders_shipping_address");
 
                     b.Navigation("BillingAddress");
 
+                    b.Navigation("Carrier");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("DiscountCode");
 
                     b.Navigation("ShippingAddress");
                 });
@@ -484,10 +600,10 @@ namespace WebStore.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("WebStore.Entities.staff", b =>
+            modelBuilder.Entity("WebStore.Entities.Staff", b =>
                 {
                     b.HasOne("WebStore.Entities.Store", "Store")
-                        .WithMany("staff")
+                        .WithMany("Staff")
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -517,11 +633,21 @@ namespace WebStore.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("MyECommerce.Console.Entities.DiscountCode", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("WebStore.Entities.Address", b =>
                 {
                     b.Navigation("OrderBillingAddresses");
 
                     b.Navigation("OrderShippingAddresses");
+                });
+
+            modelBuilder.Entity("WebStore.Entities.Carrier", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("WebStore.Entities.Category", b =>
@@ -550,9 +676,9 @@ namespace WebStore.Migrations
 
             modelBuilder.Entity("WebStore.Entities.Store", b =>
                 {
-                    b.Navigation("Stocks");
+                    b.Navigation("Staff");
 
-                    b.Navigation("staff");
+                    b.Navigation("Stocks");
                 });
 #pragma warning restore 612, 618
         }
